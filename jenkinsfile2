@@ -1,0 +1,43 @@
+pipeline{
+    agent any
+    tools{
+        maven 'maven'
+    }
+    
+    stages{
+        stage("checkout"){
+            steps{
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/boharap7788/devops-automation.git']])
+            }
+        }
+        
+         stage("maven build"){
+            steps{
+                sh 'mvn clean'
+                sh 'mvn clean install'
+            }
+        }
+        
+        stage("Build docker image"){
+            steps{
+                
+                sh 'docker build -t pbohara7788/java-automation .'
+            }
+        }
+        
+        stage("Push docker image") {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'passwd', variable: 'passwd')]) {
+                     sh 'docker login -u pbohara7788 -p ${passwd}'
+                    sh 'docker push pbohara7788/java-automation'
+}
+                        echo "Docker image pushed successfully to docker-HUB !!"
+                }
+            }
+        }
+       
+         
+    }
+    
+}
